@@ -2,18 +2,41 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from django.views import View
 
+from review_service.models import Person
+
+__AUTH_METHOD = 'POST'
+
+
+def __buildJsonResponse(status, msg=''):
+    json = {'msg': msg}
+    return JsonResponse(json, status=status)
+
+
+def __JsonSuccessResponse(msg='Successfully done'):
+    return __buildJsonResponse(status=200, msg=msg)
+
+
+def __JsonErrorResponse(msg="Bad Request"):
+    return __buildJsonResponse(status=400, msg=msg)
 
 def sign_up(request):
-    dummy_data = {'request': "SIGN UP"}
-    return JsonResponse(dummy_data)
+    if(request.method != __AUTH_METHOD):
+        return __JsonErrorResponse()
+
 
 
 def sign_in(request):
+    if (request.method != __AUTH_METHOD):
+        return __JsonErrorResponse()
+
     dummy_data = {'request': "SIGN IN"}
     return JsonResponse(dummy_data)
 
 
 def sign_out(request):
+    if (request.method != __AUTH_METHOD):
+        return __JsonErrorResponse()
+
     dummy_data = {'request': "SIGN OUT"}
     return JsonResponse(dummy_data)
 
