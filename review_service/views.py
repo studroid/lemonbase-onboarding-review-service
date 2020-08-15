@@ -23,6 +23,16 @@ def sign_up(request):
     if(request.method != __AUTH_METHOD):
         return __JsonErrorResponse()
 
+    try:
+        email = request.POST['email']
+        name = request.POST['name']
+        password = request.POST['password']
+        Person.objects.create_user(email, name, password)
+    except:
+        return __JsonErrorResponse('Error occurred while signing up')
+    else:
+        return __JsonSuccessResponse('Successfully signed up')
+
 
 
 def sign_in(request):
