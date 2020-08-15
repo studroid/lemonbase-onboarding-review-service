@@ -1,5 +1,6 @@
+import json
+
 from django.http import JsonResponse
-from django.shortcuts import render
 from django.views import View
 
 from review_service.models import Person
@@ -19,20 +20,26 @@ def __JsonSuccessResponse(msg='Successfully done'):
 def __JsonErrorResponse(msg="Bad Request"):
     return __buildJsonResponse(status=400, msg=msg)
 
+
+def __JsonRequest(request):
+    return json.loads(request.body.decode("utf-8"))
+
+
 def sign_up(request):
-    if(request.method != __AUTH_METHOD):
+    if (request.method != __AUTH_METHOD):
         return __JsonErrorResponse()
 
+    data = __JsonRequest(request)
+
     try:
-        email = request.POST['email']
-        name = request.POST['name']
-        password = request.POST['password']
+        email = data['email']
+        name = data['name']
+        password = data['password']
         Person.objects.create_user(email, name, password)
     except:
         return __JsonErrorResponse('Error occurred while signing up')
     else:
         return __JsonSuccessResponse('Successfully signed up')
-
 
 
 def sign_in(request):
