@@ -93,8 +93,8 @@ class ReviewServiceTest(TestCase):
 
         self.assertEqual(response.status_code, 200)
 
-    def test_sign_out_before_sign_in(self):
-        response = self.__client_request(self.client.post,
+    def test_sign_out_with_get_method(self):
+        response = self.__client_request(self.client.get,
                                          reverse('review_service:account_sign_out'))
 
         self.assertEqual(response.status_code, 400)
