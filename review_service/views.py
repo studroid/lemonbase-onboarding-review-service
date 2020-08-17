@@ -1,5 +1,6 @@
 import json
 
+from django.contrib.auth import authenticate, login
 from django.http import JsonResponse
 from django.views import View
 
@@ -46,8 +47,22 @@ def sign_in(request):
     if (request.method != __AUTH_METHOD):
         return __JsonErrorResponse()
 
-    dummy_data = {'request': "SIGN IN"}
-    return JsonResponse(dummy_data)
+    data = __JsonRequest(request)
+
+    try:
+        email = data['email']
+        password = data['password']
+
+        user = authenticate(request, username=email, password=password)
+        if user is not None:
+            login(request, user)
+        else:
+            return __JsonErrorResponse('Incorrect email or password')
+
+    except:
+        return __JsonErrorResponse('Error occurred while signing in')
+    else:
+        return __JsonSuccessResponse('Successfully signed in')
 
 
 def sign_out(request):
