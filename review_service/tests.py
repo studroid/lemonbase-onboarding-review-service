@@ -84,3 +84,17 @@ class ReviewServiceTest(TestCase):
                                           'password': '123'})
 
         self.assertContains(response, 'Incorrect', status_code=400)
+
+    def test_sign_out_with_success_case(self):
+        self.test_sign_in_with_success_case()
+
+        response = self.__client_request(self.client.post,
+                                         reverse('review_service:account_sign_out'))
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_sign_out_before_sign_in(self):
+        response = self.__client_request(self.client.post,
+                                         reverse('review_service:account_sign_out'))
+
+        self.assertEqual(response.status_code, 400)
