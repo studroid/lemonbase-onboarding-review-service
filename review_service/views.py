@@ -1,6 +1,6 @@
 import json
 
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.http import JsonResponse
 from django.views import View
 
@@ -69,8 +69,12 @@ def sign_out(request):
     if (request.method != __AUTH_METHOD):
         return __JsonErrorResponse()
 
-    dummy_data = {'request': "SIGN OUT"}
-    return JsonResponse(dummy_data)
+    try:
+        logout(request)
+    except:
+        return __JsonErrorResponse('Error occurred while signing out')
+    else:
+        return __JsonSuccessResponse('Successfully signed out')
 
 
 class PolicyAPI(View):
