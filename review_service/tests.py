@@ -98,3 +98,68 @@ class ReviewServiceTest(TestCase):
                                          reverse('review_service:account_sign_out'))
 
         self.assertEqual(response.status_code, 400)
+
+    def test_create_policy_with_success_case(self):
+        self.test_sign_in_with_success_case()
+
+        self.__create_user('test2@test.com', 'test2', '123456')
+        self.__create_user('test3@test.com', 'test3', '123456')
+
+        response = self.__client_request(self.client.post,
+                                         reverse('review_service:policy'),
+                                         {'name': '2020 2Q 정기 리뷰',
+                                          'reviewees': [1, 2],
+                                          'question':
+                                              {
+                                                  'title': '이번 분기에서 나에게 가장 중요한 성과는 무엇이었나요?',
+                                                  'description': '3개월 동안 수많은 문제들을 해결하시느라 고생 많으셨습니다! 그중에서도 가장 서비스에 임팩트가 컸다고 생각하는 일이 무엇이었는지 상세하게 적어주세요.'
+                                              },
+                                          })
+
+    def test_create_policy_without_auth(self):
+        self.__create_user('test2@test.com', 'test2', '123456')
+        self.__create_user('test3@test.com', 'test3', '123456')
+
+        response = self.__client_request(self.client.post,
+                                         reverse('review_service:policy'),
+                                         {'name': '2020 2Q 정기 리뷰',
+                                          'reviewees': [1, 2],
+                                          'question':
+                                              {
+                                                  'title': '이번 분기에서 나에게 가장 중요한 성과는 무엇이었나요?',
+                                                  'description': '3개월 동안 수많은 문제들을 해결하시느라 고생 많으셨습니다! 그중에서도 가장 서비스에 임팩트가 컸다고 생각하는 일이 무엇이었는지 상세하게 적어주세요.'
+                                              },
+                                          })
+
+    def test_create_policy_without_required_field(self):
+        self.test_sign_in_with_success_case()
+
+        self.__create_user('test2@test.com', 'test2', '123456')
+        self.__create_user('test3@test.com', 'test3', '123456')
+
+        response = self.__client_request(self.client.post,
+                                         reverse('review_service:policy'),
+                                         {'reviewees': [1, 2],
+                                          'question':
+                                              {
+                                                  'title': '이번 분기에서 나에게 가장 중요한 성과는 무엇이었나요?',
+                                                  'description': '3개월 동안 수많은 문제들을 해결하시느라 고생 많으셨습니다! 그중에서도 가장 서비스에 임팩트가 컸다고 생각하는 일이 무엇이었는지 상세하게 적어주세요.'
+                                              },
+                                          })
+
+    def test_create_policy_with_empty_required_field(self):
+        self.test_sign_in_with_success_case()
+
+        self.__create_user('test2@test.com', 'test2', '123456')
+        self.__create_user('test3@test.com', 'test3', '123456')
+
+        response = self.__client_request(self.client.post,
+                                         reverse('review_service:policy'),
+                                         {'name': '',
+                                          'reviewees': [1, 2],
+                                          'question':
+                                              {
+                                                  'title': '이번 분기에서 나에게 가장 중요한 성과는 무엇이었나요?',
+                                                  'description': '3개월 동안 수많은 문제들을 해결하시느라 고생 많으셨습니다! 그중에서도 가장 서비스에 임팩트가 컸다고 생각하는 일이 무엇이었는지 상세하게 적어주세요.'
+                                              },
+                                          })
