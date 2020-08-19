@@ -4,7 +4,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.http import JsonResponse
 from django.views import View
 
-from review_service.models import Person
+from review_service.models import Person, ReviewCycle, Question
 
 __AUTH_METHOD = 'POST'
 
@@ -78,13 +78,26 @@ def sign_out(request):
 
 
 class PolicyAPI(View):
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return JsonErrorResponse('Authentication required')
+        return super(PolicyAPI, self).dispatch(request, *args, **kwargs)
+
     def get(self, request):
         dummy_data = {'request': "PolicyAPI GET"}
         return JsonResponse(dummy_data)
 
     def post(self, request):
-        dummy_data = {'request': "PolicyAPI POST"}
-        return JsonResponse(dummy_data)
+        data = JsonRequest(request)
+
+        try:
+            q = Question.objects.create(title=data['question']['title'], description=data['question']['description'])
+            rc = ReviewCycle.objects.create(creator=request.user, name=data['name'], question=q)
+            rc.reviewees.set(data['reviewees'])
+        except:
+            return JsonErrorResponse('Error occurred while creating a policy')
+        else:
+            return JsonSuccessResponse('Successfully created the policy')
 
     def put(self, request):
         dummy_data = {'request': "PolicyAPI PUT"}

@@ -49,5 +49,5 @@ class ReviewCycle(models.Model):
     creator = models.ForeignKey(Person, on_delete=models.CASCADE)
     name = models.CharField(max_length=50)
     question = models.OneToOneField(Question, on_delete=models.CASCADE, related_name='+')
-    reviewee = models.ManyToManyField(Person, related_name='+')
+    reviewees = models.ManyToManyField(Person, related_name='+')
     created_at = models.DateTimeField(auto_now_add=True)
