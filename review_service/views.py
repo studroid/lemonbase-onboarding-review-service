@@ -9,28 +9,28 @@ from review_service.models import Person
 __AUTH_METHOD = 'POST'
 
 
-def __buildJsonResponse(status, msg=''):
+def buildJsonResponse(status, msg=''):
     json = {'msg': msg}
     return JsonResponse(json, status=status)
 
 
-def __JsonSuccessResponse(msg='Successfully done'):
-    return __buildJsonResponse(status=200, msg=msg)
+def JsonSuccessResponse(msg='Successfully done'):
+    return buildJsonResponse(status=200, msg=msg)
 
 
-def __JsonErrorResponse(msg="Bad Request"):
-    return __buildJsonResponse(status=400, msg=msg)
+def JsonErrorResponse(msg="Bad Request"):
+    return buildJsonResponse(status=400, msg=msg)
 
 
-def __JsonRequest(request):
+def JsonRequest(request):
     return json.loads(request.body.decode("utf-8"))
 
 
 def sign_up(request):
     if (request.method != __AUTH_METHOD):
-        return __JsonErrorResponse()
+        return JsonErrorResponse()
 
-    data = __JsonRequest(request)
+    data = JsonRequest(request)
 
     try:
         email = data['email']
@@ -38,16 +38,16 @@ def sign_up(request):
         password = data['password']
         Person.objects.create_user(email, name, password)
     except:
-        return __JsonErrorResponse('Error occurred while signing up')
+        return JsonErrorResponse('Error occurred while signing up')
     else:
-        return __JsonSuccessResponse('Successfully signed up')
+        return JsonSuccessResponse('Successfully signed up')
 
 
 def sign_in(request):
     if (request.method != __AUTH_METHOD):
-        return __JsonErrorResponse()
+        return JsonErrorResponse()
 
-    data = __JsonRequest(request)
+    data = JsonRequest(request)
 
     try:
         email = data['email']
@@ -57,24 +57,24 @@ def sign_in(request):
         if user is not None:
             login(request, user)
         else:
-            return __JsonErrorResponse('Incorrect email or password')
+            return JsonErrorResponse('Incorrect email or password')
 
     except:
-        return __JsonErrorResponse('Error occurred while signing in')
+        return JsonErrorResponse('Error occurred while signing in')
     else:
-        return __JsonSuccessResponse('Successfully signed in')
+        return JsonSuccessResponse('Successfully signed in')
 
 
 def sign_out(request):
     if (request.method != __AUTH_METHOD):
-        return __JsonErrorResponse()
+        return JsonErrorResponse()
 
     try:
         logout(request)
     except:
-        return __JsonErrorResponse('Error occurred while signing out')
+        return JsonErrorResponse('Error occurred while signing out')
     else:
-        return __JsonSuccessResponse('Successfully signed out')
+        return JsonSuccessResponse('Successfully signed out')
 
 
 class PolicyAPI(View):
