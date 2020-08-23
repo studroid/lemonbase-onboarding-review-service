@@ -37,8 +37,8 @@ class ReviewServiceTest(TestCase):
 
     def __setUpTestReviewCycle(self):
         p = Person.objects.get(pk=1)
-        q = Question.objects.create(title="Review Question", description="Policy for Test")
-        rc = ReviewCycle.objects.create(creator=p, name="Review Policy", question=q)
+        rc = ReviewCycle.objects.create(creator=p, name="Review Policy")
+        Question.objects.create(review_cycle = rc, title="Review Question", description="Policy for Test")
         rc.reviewees.set([2, 3])
 
     def __setUpLoginState(self, pk=1):

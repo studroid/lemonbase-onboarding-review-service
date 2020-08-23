@@ -122,8 +122,8 @@ class PolicyAPI(View):
         data = JsonRequest(request)
 
         try:
-            q = Question.objects.create(title=data['question']['title'], description=data['question']['description'])
-            rc = ReviewCycle.objects.create(creator=request.user, name=data['name'], question=q)
+            rc = ReviewCycle.objects.create(creator=request.user, name=data['name'])
+            Question.objects.create(review_cycle=rc, title=data['question']['title'], description=data['question']['description'])
             rc.reviewees.set(data['reviewees'])
         except:
             return JsonErrorResponse('Error occurred while creating a policy')
