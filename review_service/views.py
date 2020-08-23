@@ -130,9 +130,22 @@ class PolicyAPI(View):
         else:
             return JsonSuccessResponse('Successfully created the policy')
 
-    def put(self, request):
-        dummy_data = {'request': "PolicyAPI PUT"}
-        return JsonResponse(dummy_data)
+    def put(self, request, policy_id=None):
+        data = JsonRequest(request)
+
+        try:
+            rc = ReviewCycle.objects.get(pk=policy_id)
+            rc.name = data['name']
+            rc.question.title = data['question']['title']
+            rc.question.description = data['question']['description']
+            rc.question.save()
+            rc.save()
+            rc.reviewees.set(data['reviewees'])
+
+        except:
+            return JsonErrorResponse('Error occurred while updating a policy')
+        else:
+            return JsonSuccessResponse('Successfully updated the policy')
 
     def delete(self, request):
         dummy_data = {'request': "PolicyAPI DELETE"}

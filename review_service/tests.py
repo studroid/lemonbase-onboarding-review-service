@@ -230,7 +230,7 @@ class ReviewServiceTest(TestCase):
         self.assertEqual(review.question.title, '지난 분기에서 나에게 가장 중요한 성과는 무엇이었나요?')
         self.assertEqual(review.reviewees.all()[0].email, 'test3@test.com')
 
-    def test_update_policy_partial_field_with_success_case(self):
+    def test_update_policy_without_every_field(self):
         self.__setUpLoginState()
         self.__setUpTestReviewCycle()
 
@@ -238,7 +238,36 @@ class ReviewServiceTest(TestCase):
                                          reverse('review_service:policy_one_argument', args=(1,)),
                                          {'name': '2020 3Q 정기 리뷰'})
 
-        self.assertEqual(response.status_code, 200)
-        review = ReviewCycle.objects.get(name__contains='3Q')
-        self.assertEqual(review.question.title, '이번 분기에서 나에게 가장 중요한 성과는 무엇이었나요?')
-        self.assertEqual(review.reviewees.all()[0].email, 'test2@test.com')
+        self.assertEqual(response.status_code, 400)
+
+    def test_update_policy_with_not_existing_one(self):
+        self.__setUpLoginState()
+
+        response = self.__client_request(self.client.put,
+                                         reverse('review_service:policy_one_argument', args=(1,)),
+                                         {'name': '2020 3Q 정기 리뷰',
+                                          'reviewees': [3],
+                                          'question':
+                                              {
+                                                  'title': '지난 분기에서 나에게 가장 중요한 성과는 무엇이었나요?',
+                                                  'description': '1개월 동안 수많은 문제들을 해결하시느라 고생 많으셨습니다!'
+                                              },
+                                          })
+
+        self.assertEqual(response.status_code, 400)
+
+    def test_update_policy_without_auth(self):
+        self.__setUpTestReviewCycle()
+
+        response = self.__client_request(self.client.put,
+                                         reverse('review_service:policy_one_argument', args=(1,)),
+                                         {'name': '2020 3Q 정기 리뷰',
+                                          'reviewees': [3],
+                                          'question':
+                                              {
+                                                  'title': '지난 분기에서 나에게 가장 중요한 성과는 무엇이었나요?',
+                                                  'description': '1개월 동안 수많은 문제들을 해결하시느라 고생 많으셨습니다!'
+                                              },
+                                          })
+
+        self.assertEqual(response.status_code, 400)
