@@ -271,3 +271,33 @@ class ReviewServiceTest(TestCase):
                                           })
 
         self.assertEqual(response.status_code, 400)
+
+    def test_delete_policy_with_success_case(self):
+        self.__setUpLoginState()
+        self.__setUpTestReviewCycle()
+
+        response = self.__client_request(self.client.delete,
+                                         reverse('review_service:policy_one_argument', args=(1,)))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(ReviewCycle.objects.count(), 0)
+        self.assertEqual(Question.objects.count(), 0)
+
+    def test_delete_policy_with_not_existing_one(self):
+        self.__setUpLoginState()
+
+        response = self.__client_request(self.client.delete,
+                                         reverse('review_service:policy_one_argument', args=(1,)))
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(ReviewCycle.objects.count(), 0)
+        self.assertEqual(Question.objects.count(), 0)
+
+    def test_delete_policy_without_permission(self):
+        self.__setUpLoginState(pk=2)
+        self.__setUpTestReviewCycle()
+
+        response = self.__client_request(self.client.delete,
+                                         reverse('review_service:policy_one_argument', args=(1,)))
+
+        self.assertEqual(response.status_code, 400)

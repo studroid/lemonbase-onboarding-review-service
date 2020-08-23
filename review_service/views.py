@@ -147,6 +147,10 @@ class PolicyAPI(View):
         else:
             return JsonSuccessResponse('Successfully updated the policy')
 
-    def delete(self, request):
-        dummy_data = {'request': "PolicyAPI DELETE"}
-        return JsonResponse(dummy_data)
+    def delete(self, request, policy_id=None):
+        try:
+            ReviewCycle.objects.filter(pk=policy_id).delete()
+        except:
+            return JsonErrorResponse('Error occurred while deleting a policy')
+        else:
+            return JsonSuccessResponse('Successfully deleted the policy')
