@@ -1,6 +1,7 @@
 import json
 
 from django.contrib.auth import authenticate, login, logout
+from django.db import transaction
 from django.http import JsonResponse
 from django.views import View
 
@@ -95,6 +96,7 @@ class PolicyAPI(View):
 
         return super(PolicyAPI, self).dispatch(request, *args, **kwargs)
 
+    @transaction.non_atomic_requests
     def get(self, request, policy_id=None):
         try:
             rc = ReviewCycle.objects.get(pk=policy_id)
