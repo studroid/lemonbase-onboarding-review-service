@@ -83,6 +83,16 @@ class PolicyAPI(View):
     def dispatch(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
             return JsonErrorResponse('Authentication required')
+
+        # Authorization: A policy can only be accessed by the creator
+        if request.method != 'POST' and 'policy_id' in kwargs:
+            try:
+                rc = ReviewCycle.objects.get(pk=kwargs['policy_id'])
+                if not request.user.has_perm(rc):
+                    return JsonErrorResponse('Permission denied')
+            except:
+                return JsonErrorResponse('Exception occurred while getting a ReviewCycle object')
+
         return super(PolicyAPI, self).dispatch(request, *args, **kwargs)
 
     def get(self, request, policy_id=None):

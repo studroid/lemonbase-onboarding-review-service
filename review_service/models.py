@@ -34,10 +34,14 @@ class Person(AbstractBaseUser):
     def __str__(self):
         return self.email
 
-    def has_perm(self, obj=None):
-        "Consider use this for limiting access to the review policy"
-        # TODO: Only return true if the policy is made by the person
-        return True
+    def has_perm(self, review_cycle=None):
+        try:
+            if isinstance(review_cycle, ReviewCycle) and \
+                    self.pk is review_cycle.creator_id:
+                return True
+            return False
+        except:
+            return False
 
 
 class Question(models.Model):

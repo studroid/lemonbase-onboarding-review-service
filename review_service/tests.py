@@ -41,8 +41,8 @@ class ReviewServiceTest(TestCase):
         rc = ReviewCycle.objects.create(creator=p, name="Review Policy", question=q)
         rc.reviewees.set([2, 3])
 
-    def __setUpLoginState(self):
-        p = Person.objects.get(pk=1)
+    def __setUpLoginState(self, pk=1):
+        p = Person.objects.get(pk=pk)
         self.client.force_login(p)
 
     def test_sign_up_with_get_method(self):
@@ -194,8 +194,18 @@ class ReviewServiceTest(TestCase):
 
     def test_read_policy_without_argument(self):
         self.__setUpLoginState()
+        self.__setUpTestReviewCycle()
 
         response = self.__client_request(self.client.get,
                                          reverse('review_service:policy'))
+
+        self.assertEqual(response.status_code, 400)
+
+    def test_read_policy_without_permission(self):
+        self.__setUpLoginState(pk=2)
+        self.__setUpTestReviewCycle()
+
+        response = self.__client_request(self.client.get,
+                                         reverse('review_service:policy_one_argument', args=(1,)))
 
         self.assertEqual(response.status_code, 400)
