@@ -8,14 +8,22 @@ from review_service.models import Person, ReviewCycle
 
 
 class ReviewServiceTest(TestCase):
-    def __client_request(self, method, path, data=None):
+    @classmethod
+    def __create_user(cls, email, name, password):
+        return Person.objects.create_user(email, name, password)
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.__create_user('test@test.com', 'test', '123456')
+        cls.__create_user('test2@test.com', 'test2', '123456')
+        cls.__create_user('test3@test.com', 'test3', '123456')
+
+    @staticmethod
+    def __client_request(method, path, data=None):
         if data is None:
             return method(path, content_type='application/json')
         else:
             return method(path, json.dumps(data), content_type='application/json')
-
-    def __create_user(self, email, name, password):
-        return Person.objects.create_user(email, name, password)
 
     def test_sign_up_with_get_method(self):
         response = self.__client_request(self.client.get,
@@ -25,11 +33,11 @@ class ReviewServiceTest(TestCase):
     def test_sign_up_with_success_case(self):
         response = self.__client_request(self.client.post,
                                          reverse('review_service:account_sign_up'),
-                                         {'email': 'test@test.com',
-                                          'name': 'test',
+                                         {'email': 'test_new@test.com',
+                                          'name': 'test_new',
                                           'password': '123456'})
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(Person.objects.get(email='test@test.com').name, 'test')
+        self.assertEqual(Person.objects.get(email='test_new@test.com').name, 'test_new')
 
     def test_sign_up_with_failure_case(self):
         response = self.__client_request(self.client.post,
@@ -44,7 +52,6 @@ class ReviewServiceTest(TestCase):
         self.assertEqual(response.status_code, 400)
 
     def test_sign_in_with_success_case(self):
-        self.__create_user('test@test.com', 'test', '123456')
         # self.test_sign_up_with_success_case()
 
         response = self.__client_request(self.client.post,
@@ -55,8 +62,6 @@ class ReviewServiceTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_sign_in_with_wrong_password_case(self):
-        self.__create_user('test@test.com', 'test', '123456')
-
         response = self.__client_request(self.client.post,
                                          reverse('review_service:account_sign_in'),
                                          {'email': 'test@test.com',
@@ -66,8 +71,6 @@ class ReviewServiceTest(TestCase):
         self.assertContains(response, 'Incorrect', status_code=400)
 
     def test_sign_in_with_no_id_case(self):
-        self.__create_user('test@test.com', 'test', '123456')
-
         response = self.__client_request(self.client.post,
                                          reverse('review_service:account_sign_in'),
                                          {'email': 'no@test.com',
@@ -76,8 +79,6 @@ class ReviewServiceTest(TestCase):
         self.assertContains(response, 'Incorrect', status_code=400)
 
     def test_sign_in_with_no_id_wrong_password_case(self):
-        self.__create_user('test@test.com', 'test', '123456')
-
         response = self.__client_request(self.client.post,
                                          reverse('review_service:account_sign_in'),
                                          {'email': 'no@test.com',
@@ -102,9 +103,6 @@ class ReviewServiceTest(TestCase):
     def test_create_policy_with_success_case(self):
         self.test_sign_in_with_success_case()
 
-        self.__create_user('test2@test.com', 'test2', '123456')
-        self.__create_user('test3@test.com', 'test3', '123456')
-
         response = self.__client_request(self.client.post,
                                          reverse('review_service:policy'),
                                          {'name': '2020 2Q 정기 리뷰',
@@ -121,9 +119,6 @@ class ReviewServiceTest(TestCase):
         self.assertEqual(review.reviewees.all()[0].email, 'test2@test.com')
 
     def test_create_policy_without_auth(self):
-        self.__create_user('test2@test.com', 'test2', '123456')
-        self.__create_user('test3@test.com', 'test3', '123456')
-
         response = self.__client_request(self.client.post,
                                          reverse('review_service:policy'),
                                          {'name': '2020 2Q 정기 리뷰',
@@ -141,9 +136,6 @@ class ReviewServiceTest(TestCase):
     def test_create_policy_without_required_field(self):
         self.test_sign_in_with_success_case()
 
-        self.__create_user('test2@test.com', 'test2', '123456')
-        self.__create_user('test3@test.com', 'test3', '123456')
-
         response = self.__client_request(self.client.post,
                                          reverse('review_service:policy'),
                                          {'reviewees': [1, 2],
@@ -156,3 +148,5 @@ class ReviewServiceTest(TestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(ReviewCycle.objects.count(), 0)
+
+
