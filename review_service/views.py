@@ -9,13 +9,15 @@ from review_service.models import Person, ReviewCycle, Question
 __AUTH_METHOD = 'POST'
 
 
-def buildJsonResponse(status, msg=''):
+def buildJsonResponse(status, msg='', data=None):
     json = {'msg': msg}
+    if data is not None:
+        json.update(data)
     return JsonResponse(json, status=status)
 
 
-def JsonSuccessResponse(msg='Successfully done'):
-    return buildJsonResponse(status=200, msg=msg)
+def JsonSuccessResponse(msg='Successfully done', data=None):
+    return buildJsonResponse(status=200, msg=msg, data=data)
 
 
 def JsonErrorResponse(msg="Bad Request"):
@@ -83,9 +85,26 @@ class PolicyAPI(View):
             return JsonErrorResponse('Authentication required')
         return super(PolicyAPI, self).dispatch(request, *args, **kwargs)
 
-    def get(self, request):
-        dummy_data = {'request': "PolicyAPI GET"}
-        return JsonResponse(dummy_data)
+    def get(self, request, policy_id=None):
+        try:
+            rc = ReviewCycle.objects.get(pk=policy_id)
+            reviewees = list()
+            for reviewee in rc.reviewees.all().iterator():
+                reviewees.append(reviewee.pk)
+        except:
+            return JsonErrorResponse('Error occurred while reading a policy')
+        else:
+            return JsonSuccessResponse('Successfully read the policy',
+                                       {
+                                           'name': rc.name,
+                                           'creator': rc.creator_id,
+                                           'question': {
+                                               'title': rc.question.title,
+                                               'description': rc.question.description,
+                                           },
+                                           'reviewees': reviewees,
+                                           'created_at': rc.created_at,
+                                       })
 
     def post(self, request):
         data = JsonRequest(request)

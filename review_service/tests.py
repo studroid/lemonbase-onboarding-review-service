@@ -1,10 +1,9 @@
 import json
 
-from django.contrib.auth.models import User
-from django.test import TestCase, Client
+from django.test import TestCase
 from django.urls import reverse
 
-from review_service.models import Person, ReviewCycle
+from review_service.models import Person, ReviewCycle, Question
 
 
 class ReviewServiceTest(TestCase):
@@ -14,16 +13,37 @@ class ReviewServiceTest(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.__create_user('test@test.com', 'test', '123456')
+        p = cls.__create_user('test@test.com', 'test', '123456')
         cls.__create_user('test2@test.com', 'test2', '123456')
         cls.__create_user('test3@test.com', 'test3', '123456')
 
+        # Default ReviewCycle count is set to 1 if uncomment these lines, which might be an improper situation.
+        # q = Question.objects.create(title="Review Question", description="Policy for Test")
+        # rc = ReviewCycle.objects.create(creator=p, name="Review Policy", question=q)
+        # rc.reviewees.set([2, 3])
+
     @staticmethod
     def __client_request(method, path, data=None):
+        if method.__name__ is 'get':
+            return method(path, data)
         if data is None:
             return method(path, content_type='application/json')
         else:
             return method(path, json.dumps(data), content_type='application/json')
+
+    @staticmethod
+    def __parse_response(response):
+        return json.loads(response.content.decode("utf-8"))
+
+    def __setUpTestReviewCycle(self):
+        p = Person.objects.get(pk=1)
+        q = Question.objects.create(title="Review Question", description="Policy for Test")
+        rc = ReviewCycle.objects.create(creator=p, name="Review Policy", question=q)
+        rc.reviewees.set([2, 3])
+
+    def __setUpLoginState(self):
+        p = Person.objects.get(pk=1)
+        self.client.force_login(p)
 
     def test_sign_up_with_get_method(self):
         response = self.__client_request(self.client.get,
@@ -122,7 +142,7 @@ class ReviewServiceTest(TestCase):
         response = self.__client_request(self.client.post,
                                          reverse('review_service:policy'),
                                          {'name': '2020 2Q 정기 리뷰',
-                                          'reviewees': [1, 2],
+                                          'reviewees': [2, 3],
                                           'question':
                                               {
                                                   'title': '이번 분기에서 나에게 가장 중요한 성과는 무엇이었나요?',
@@ -138,7 +158,7 @@ class ReviewServiceTest(TestCase):
 
         response = self.__client_request(self.client.post,
                                          reverse('review_service:policy'),
-                                         {'reviewees': [1, 2],
+                                         {'reviewees': [2, 3],
                                           'question':
                                               {
                                                   'title': '이번 분기에서 나에게 가장 중요한 성과는 무엇이었나요?',
@@ -149,4 +169,33 @@ class ReviewServiceTest(TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(ReviewCycle.objects.count(), 0)
 
+    def test_read_policy_with_success_case(self):
+        self.__setUpLoginState()
+        self.__setUpTestReviewCycle()
 
+        response = self.__client_request(self.client.get,
+                                         reverse('review_service:policy_one_argument', args=(1,)))
+
+        data = self.__parse_response(response)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data['name'], 'Review Policy')
+        self.assertEqual(data['creator'], 1)
+        self.assertEqual(data['reviewees'], [2, 3])
+        self.assertEqual(data['question']['title'], 'Review Question')
+        self.assertEqual(data['question']['description'], 'Policy for Test')
+
+    def test_read_policy_with_not_existing_one(self):
+        self.__setUpLoginState()
+
+        response = self.__client_request(self.client.get,
+                                         reverse('review_service:policy_one_argument', args=(1,)))
+
+        self.assertEqual(response.status_code, 400)
+
+    def test_read_policy_without_argument(self):
+        self.__setUpLoginState()
+
+        response = self.__client_request(self.client.get,
+                                         reverse('review_service:policy'))
+
+        self.assertEqual(response.status_code, 400)
