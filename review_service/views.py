@@ -100,8 +100,8 @@ class PolicyAPI(View):
     def get(self, request, policy_id=None):
         try:
             rc = ReviewCycle.objects.get(pk=policy_id)
-            reviewees = list()
-            for reviewee in rc.reviewees.all().iterator():
+            reviewees = []
+            for reviewee in rc.reviewees.all():
                 reviewees.append(reviewee.pk)
         except:
             return JsonErrorResponse('Error occurred while reading a policy')

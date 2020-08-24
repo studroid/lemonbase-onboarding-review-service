@@ -8,14 +8,14 @@ from review_service.models import Person, ReviewCycle, Question
 
 class ReviewServiceTest(TestCase):
     @classmethod
-    def __create_user(cls, email, name, password):
+    def __create_person(cls, email, name, password):
         return Person.objects.create_user(email, name, password)
 
     @classmethod
     def setUpTestData(cls):
-        p = cls.__create_user('test@test.com', 'test', '123456')
-        cls.__create_user('test2@test.com', 'test2', '123456')
-        cls.__create_user('test3@test.com', 'test3', '123456')
+        cls.person1 = cls.__create_person('test@test.com', 'test', '123456')
+        cls.person2 = cls.__create_person('test2@test.com', 'test2', '123456')
+        cls.person3 = cls.__create_person('test3@test.com', 'test3', '123456')
 
         # Default ReviewCycle count is set to 1 if uncomment these lines, which might be an improper situation.
         # q = Question.objects.create(title="Review Question", description="Policy for Test")
@@ -38,12 +38,14 @@ class ReviewServiceTest(TestCase):
     def __setUpTestReviewCycle(self):
         p = Person.objects.get(pk=1)
         rc = ReviewCycle.objects.create(creator=p, name="Review Policy")
-        Question.objects.create(review_cycle = rc, title="Review Question", description="Policy for Test")
+        Question.objects.create(review_cycle=rc, title="Review Question", description="Policy for Test")
         rc.reviewees.set([2, 3])
 
-    def __setUpLoginState(self, pk=1):
-        p = Person.objects.get(pk=pk)
-        self.client.force_login(p)
+    def __setUpLoginState(self, person=None):
+        if person:
+            self.client.force_login(person)
+        else:
+            self.client.force_login(self.person1)
 
     def test_sign_up_with_get_method(self):
         response = self.__client_request(self.client.get,
@@ -202,7 +204,7 @@ class ReviewServiceTest(TestCase):
         self.assertEqual(response.status_code, 400)
 
     def test_read_policy_without_permission(self):
-        self.__setUpLoginState(pk=2)
+        self.__setUpLoginState(self.person2)
         self.__setUpTestReviewCycle()
 
         response = self.__client_request(self.client.get,
@@ -294,7 +296,7 @@ class ReviewServiceTest(TestCase):
         self.assertEqual(Question.objects.count(), 0)
 
     def test_delete_policy_without_permission(self):
-        self.__setUpLoginState(pk=2)
+        self.__setUpLoginState(self.person2)
         self.__setUpTestReviewCycle()
 
         response = self.__client_request(self.client.delete,
