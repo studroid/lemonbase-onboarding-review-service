@@ -2,10 +2,13 @@ import json
 
 from django.contrib.auth import authenticate, login, logout
 from django.db import transaction
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404
 from django.views import View
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from review_service.models import Person, ReviewCycle, Question
+from review_service.serializers import ReviewCycleSerializer
 
 __AUTH_METHOD = 'POST'
 
@@ -80,7 +83,13 @@ def sign_out(request):
         return JsonSuccessResponse('Successfully signed out')
 
 
-class PolicyAPI(View):
+class PolicyAPI(APIView):
+    def get_object(self, pk):
+        try:
+            return ReviewCycle.objects.get(pk=pk)
+        except ReviewCycle.DoesNotExist:
+            raise Http404
+
     def dispatch(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
             return JsonErrorResponse('Authentication required')
@@ -97,26 +106,10 @@ class PolicyAPI(View):
         return super(PolicyAPI, self).dispatch(request, *args, **kwargs)
 
     @transaction.non_atomic_requests
-    def get(self, request, policy_id=None):
-        try:
-            rc = ReviewCycle.objects.get(pk=policy_id)
-            reviewees = []
-            for reviewee in rc.reviewees.all():
-                reviewees.append(reviewee.pk)
-        except:
-            return JsonErrorResponse('Error occurred while reading a policy')
-        else:
-            return JsonSuccessResponse('Successfully read the policy',
-                                       {
-                                           'name': rc.name,
-                                           'creator': rc.creator_id,
-                                           'question': {
-                                               'title': rc.question.title,
-                                               'description': rc.question.description,
-                                           },
-                                           'reviewees': reviewees,
-                                           'created_at': rc.created_at,
-                                       })
+    def get(self, request, policy_id=None, format=None):
+        rc = self.get_object(policy_id)
+        serializer = ReviewCycleSerializer(rc)
+        return Response(serializer.data)
 
     def post(self, request):
         data = JsonRequest(request)
