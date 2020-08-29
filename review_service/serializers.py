@@ -31,3 +31,15 @@ class ReviewCycleSerializer(serializers.ModelSerializer):
         Question.objects.create(review_cycle=review_cycle, **question_data)
         review_cycle.reviewees.set(reviewees_data)
         return review_cycle
+
+    def update(self, instance, validated_data):
+        question_data = validated_data.pop('question')
+        reviewees_data = validated_data.pop('reviewees')
+
+        instance.name = validated_data.get('name', instance.name)
+        instance.question.title = question_data['title']
+        instance.question.description = question_data['description']
+        instance.question.save()
+        instance.save()
+        instance.reviewees.set(reviewees_data)
+        return instance

@@ -121,21 +121,13 @@ class PolicyAPI(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request, policy_id=None):
-        data = JsonRequest(request)
-
-        try:
-            rc = ReviewCycle.objects.get(pk=policy_id)
-            rc.name = data['name']
-            rc.question.title = data['question']['title']
-            rc.question.description = data['question']['description']
-            rc.question.save()
-            rc.save()
-            rc.reviewees.set(data['reviewees'])
-
-        except:
-            return JsonErrorResponse('Error occurred while updating a policy')
-        else:
-            return JsonSuccessResponse('Successfully updated the policy')
+        request.data['creator'] = request.user.id
+        rc = self.get_object(policy_id)
+        serializer = ReviewCycleSerializer(rc, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, policy_id=None):
         try:
