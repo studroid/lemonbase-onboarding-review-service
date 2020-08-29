@@ -120,7 +120,7 @@ class PolicyAPI(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def put(self, request, policy_id=None):
+    def put(self, request, policy_id=None, format=None):
         request.data['creator'] = request.user.id
         rc = self.get_object(policy_id)
         serializer = ReviewCycleSerializer(rc, data=request.data)
@@ -129,10 +129,7 @@ class PolicyAPI(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request, policy_id=None):
-        try:
-            ReviewCycle.objects.filter(pk=policy_id).delete()
-        except:
-            return JsonErrorResponse('Error occurred while deleting a policy')
-        else:
-            return JsonSuccessResponse('Successfully deleted the policy')
+    def delete(self, request, policy_id=None, format=None):
+        rc = self.get_object(policy_id)
+        rc.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

@@ -281,7 +281,7 @@ class ReviewServiceTest(TestCase):
         response = self.__client_request(self.client.delete,
                                          reverse('review_service:policy_one_argument', args=(1,)))
 
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 204)
         self.assertEqual(ReviewCycle.objects.count(), 0)
         self.assertEqual(Question.objects.count(), 0)
 
