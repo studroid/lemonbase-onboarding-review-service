@@ -26,6 +26,8 @@ class ReviewCycleSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         question_data = validated_data.pop('question')
+        reviewees_data = validated_data.pop('reviewees')
         review_cycle = ReviewCycle.objects.create(**validated_data)
         Question.objects.create(review_cycle=review_cycle, **question_data)
+        review_cycle.reviewees.set(reviewees_data)
         return review_cycle

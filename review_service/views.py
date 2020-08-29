@@ -4,6 +4,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.db import transaction
 from django.http import JsonResponse, Http404
 from django.views import View
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -111,17 +112,13 @@ class PolicyAPI(APIView):
         serializer = ReviewCycleSerializer(rc)
         return Response(serializer.data)
 
-    def post(self, request):
-        data = JsonRequest(request)
-
-        try:
-            rc = ReviewCycle.objects.create(creator=request.user, name=data['name'])
-            Question.objects.create(review_cycle=rc, title=data['question']['title'], description=data['question']['description'])
-            rc.reviewees.set(data['reviewees'])
-        except:
-            return JsonErrorResponse('Error occurred while creating a policy')
-        else:
-            return JsonSuccessResponse('Successfully created the policy')
+    def post(self, request, format=None):
+        request.data['creator'] = request.user.id
+        serializer = ReviewCycleSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request, policy_id=None):
         data = JsonRequest(request)

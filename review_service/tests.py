@@ -135,7 +135,7 @@ class ReviewServiceTest(TestCase):
                                                   'description': '3개월 동안 수많은 문제들을 해결하시느라 고생 많으셨습니다! 그중에서도 가장 서비스에 임팩트가 컸다고 생각하는 일이 무엇이었는지 상세하게 적어주세요.'
                                               },
                                           })
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 201)
         review = ReviewCycle.objects.get(name__contains='2020')
         self.assertEqual(review.question.title, '이번 분기에서 나에게 가장 중요한 성과는 무엇이었나요?')
         self.assertEqual(review.reviewees.all()[0].email, 'test2@test.com')
