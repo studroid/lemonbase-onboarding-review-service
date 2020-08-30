@@ -50,7 +50,7 @@ class ReviewServiceTest(TestCase):
     def test_sign_up_with_get_method(self):
         response = self.__client_request(self.client.get,
                                          reverse('review_service:account_sign_up'))
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 405)
 
     def test_sign_up_with_success_case(self):
         response = self.__client_request(self.client.post,
@@ -58,7 +58,7 @@ class ReviewServiceTest(TestCase):
                                          {'email': 'test_new@test.com',
                                           'name': 'test_new',
                                           'password': '123456'})
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 201)
         self.assertEqual(Person.objects.get(email='test_new@test.com').name, 'test_new')
 
     def test_sign_up_with_failure_case(self):
@@ -71,7 +71,7 @@ class ReviewServiceTest(TestCase):
     def test_sign_in_with_get_method(self):
         response = self.__client_request(self.client.get,
                                          reverse('review_service:account_sign_in'))
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 405)
 
     def test_sign_in_with_success_case(self):
         # self.test_sign_up_with_success_case()
@@ -89,8 +89,7 @@ class ReviewServiceTest(TestCase):
                                          {'email': 'test@test.com',
                                           'password': '123'})
 
-        # self.assertEqual(response.status_code, 400)
-        self.assertContains(response, 'Incorrect', status_code=400)
+        self.assertEqual(response.status_code, 403)
 
     def test_sign_in_with_no_id_case(self):
         response = self.__client_request(self.client.post,
@@ -98,7 +97,7 @@ class ReviewServiceTest(TestCase):
                                          {'email': 'no@test.com',
                                           'password': '123456'})
 
-        self.assertContains(response, 'Incorrect', status_code=400)
+        self.assertEqual(response.status_code, 403)
 
     def test_sign_in_with_no_id_wrong_password_case(self):
         response = self.__client_request(self.client.post,
@@ -106,7 +105,7 @@ class ReviewServiceTest(TestCase):
                                          {'email': 'no@test.com',
                                           'password': '123'})
 
-        self.assertContains(response, 'Incorrect', status_code=400)
+        self.assertEqual(response.status_code, 403)
 
     def test_sign_out_with_success_case(self):
         self.test_sign_in_with_success_case()
@@ -120,7 +119,7 @@ class ReviewServiceTest(TestCase):
         response = self.__client_request(self.client.get,
                                          reverse('review_service:account_sign_out'))
 
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 405)
 
     def test_create_policy_with_success_case(self):
         self.test_sign_in_with_success_case()

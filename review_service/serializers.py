@@ -8,7 +8,14 @@ from review_service.models import Person, ReviewCycle, Question
 class PersonSerializer(serializers.ModelSerializer):
     class Meta:
         model = Person
-        fields = ['email', 'name', 'created_at']
+        fields = ['email', 'name', 'password', 'created_at']
+        extra_kwargs = {'password': {'write_only': True}}
+
+    def create(self, validated_data):
+        return Person.objects.create_user(
+            validated_data['email'],
+            validated_data['name'],
+            validated_data['password'])
 
 
 class QuestionSerializer(serializers.ModelSerializer):

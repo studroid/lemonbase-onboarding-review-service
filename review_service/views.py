@@ -5,13 +5,12 @@ from django.db import transaction
 from django.http import JsonResponse, Http404
 from django.views import View
 from rest_framework import status
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from review_service.models import Person, ReviewCycle, Question
-from review_service.serializers import ReviewCycleSerializer
-
-__AUTH_METHOD = 'POST'
+from review_service.serializers import ReviewCycleSerializer, PersonSerializer
 
 
 def buildJsonResponse(status, msg='', data=None):
@@ -21,67 +20,44 @@ def buildJsonResponse(status, msg='', data=None):
     return JsonResponse(json, status=status)
 
 
-def JsonSuccessResponse(msg='Successfully done', data=None):
-    return buildJsonResponse(status=200, msg=msg, data=data)
-
-
 def JsonErrorResponse(msg="Bad Request"):
     return buildJsonResponse(status=400, msg=msg)
 
 
-def JsonRequest(request):
-    return json.loads(request.body.decode("utf-8"))
-
-
+@api_view(['POST'])
 def sign_up(request):
-    if (request.method != __AUTH_METHOD):
-        return JsonErrorResponse()
-
-    data = JsonRequest(request)
-
-    try:
-        email = data['email']
-        name = data['name']
-        password = data['password']
-        Person.objects.create_user(email, name, password)
-    except:
-        return JsonErrorResponse('Error occurred while signing up')
-    else:
-        return JsonSuccessResponse('Successfully signed up')
+    serializer = PersonSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(['POST'])
 def sign_in(request):
-    if (request.method != __AUTH_METHOD):
-        return JsonErrorResponse()
-
-    data = JsonRequest(request)
-
     try:
-        email = data['email']
-        password = data['password']
-
-        user = authenticate(request, username=email, password=password)
+        user = authenticate(request,
+                            username=request.data['email'],
+                            password=request.data['password'])
         if user is not None:
             login(request, user)
         else:
-            return JsonErrorResponse('Incorrect email or password')
+            return Response(status=status.HTTP_403_FORBIDDEN)
 
     except:
-        return JsonErrorResponse('Error occurred while signing in')
+        return Response(status=status.HTTP_400_BAD_REQUEST)
     else:
-        return JsonSuccessResponse('Successfully signed in')
+        return Response(status=status.HTTP_200_OK)
 
 
+@api_view(['POST'])
 def sign_out(request):
-    if (request.method != __AUTH_METHOD):
-        return JsonErrorResponse()
-
     try:
         logout(request)
     except:
-        return JsonErrorResponse('Error occurred while signing out')
+        return Response(status=status.HTTP_400_BAD_REQUEST)
     else:
-        return JsonSuccessResponse('Successfully signed out')
+        return Response(status=status.HTTP_200_OK)
 
 
 class PolicyAPI(APIView):
