@@ -1,6 +1,7 @@
 from typing import List
 
 from rest_framework import serializers
+from rest_framework.fields import HiddenField, IntegerField, CurrentUserDefault
 
 from review_service.models import Person, ReviewCycle, Question
 
@@ -30,10 +31,12 @@ class ReviewCycleSerializer(serializers.ModelSerializer):
     class Meta:
         model = ReviewCycle
         fields = ['creator', 'name', 'reviewees', 'question', 'created_at']
+        read_only_fields = ['creator']
 
     def create(self, validated_data):
         question_data = validated_data.pop('question')
         reviewees_data = validated_data.pop('reviewees')
+
         review_cycle = ReviewCycle.objects.create(**validated_data)
         Question.objects.create(review_cycle=review_cycle, **question_data)
         review_cycle.reviewees.set(reviewees_data)

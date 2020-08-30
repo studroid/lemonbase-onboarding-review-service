@@ -69,15 +69,13 @@ class PolicyAPI(APIView):
         return Response(serializer.data)
 
     def post(self, request, format=None):
-        request.data['creator'] = request.user.id
         serializer = ReviewCycleSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(creator=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request, policy_id=None, format=None):
-        request.data['creator'] = request.user.id
         rc = self.get_object(policy_id)
         serializer = ReviewCycleSerializer(rc, data=request.data)
         if serializer.is_valid():
