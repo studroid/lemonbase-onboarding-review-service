@@ -151,7 +151,7 @@ class ReviewServiceTest(TestCase):
                                               },
                                           })
 
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 403)
         self.assertEqual(ReviewCycle.objects.count(), 0)
 
     def test_create_policy_without_required_field(self):
@@ -191,7 +191,7 @@ class ReviewServiceTest(TestCase):
         response = self.__client_request(self.client.get,
                                          reverse('review_service:policy_one_argument', args=(1,)))
 
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 404)
 
     def test_read_policy_without_argument(self):
         self.__setUpLoginState()
@@ -209,7 +209,7 @@ class ReviewServiceTest(TestCase):
         response = self.__client_request(self.client.get,
                                          reverse('review_service:policy_one_argument', args=(1,)))
 
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 403)
 
     def test_update_policy_every_field_with_success_case(self):
         self.__setUpLoginState()
@@ -255,7 +255,7 @@ class ReviewServiceTest(TestCase):
                                               },
                                           })
 
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 404)
 
     def test_update_policy_without_auth(self):
         self.__setUpTestReviewCycle()
@@ -271,7 +271,7 @@ class ReviewServiceTest(TestCase):
                                               },
                                           })
 
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 403)
 
     def test_delete_policy_with_success_case(self):
         self.__setUpLoginState()
@@ -290,7 +290,7 @@ class ReviewServiceTest(TestCase):
         response = self.__client_request(self.client.delete,
                                          reverse('review_service:policy_one_argument', args=(1,)))
 
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 404)
         self.assertEqual(ReviewCycle.objects.count(), 0)
         self.assertEqual(Question.objects.count(), 0)
 
@@ -301,4 +301,4 @@ class ReviewServiceTest(TestCase):
         response = self.__client_request(self.client.delete,
                                          reverse('review_service:policy_one_argument', args=(1,)))
 
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 403)

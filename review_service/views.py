@@ -4,24 +4,15 @@ from django.contrib.auth import authenticate, login, logout
 from django.db import transaction
 from django.http import JsonResponse, Http404
 from django.views import View
-from rest_framework import status
+from rest_framework import status, permissions
 from rest_framework.decorators import api_view
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from review_service.models import Person, ReviewCycle, Question
+from review_service.permissions import IsCreatorOrCreateOnly
 from review_service.serializers import ReviewCycleSerializer, PersonSerializer
-
-
-def buildJsonResponse(status, msg='', data=None):
-    json = {'msg': msg}
-    if data is not None:
-        json.update(data)
-    return JsonResponse(json, status=status)
-
-
-def JsonErrorResponse(msg="Bad Request"):
-    return buildJsonResponse(status=400, msg=msg)
 
 
 @api_view(['POST'])
@@ -61,26 +52,15 @@ def sign_out(request):
 
 
 class PolicyAPI(APIView):
+    permission_classes = [permissions.IsAuthenticated, IsCreatorOrCreateOnly]
+
     def get_object(self, pk):
         try:
-            return ReviewCycle.objects.get(pk=pk)
+            obj = ReviewCycle.objects.get(pk=pk)
+            self.check_object_permissions(self.request, obj)
+            return obj
         except ReviewCycle.DoesNotExist:
             raise Http404
-
-    def dispatch(self, request, *args, **kwargs):
-        if not request.user.is_authenticated:
-            return JsonErrorResponse('Authentication required')
-
-        # Authorization: A policy can only be accessed by the creator
-        if request.method != 'POST' and 'policy_id' in kwargs:
-            try:
-                rc = ReviewCycle.objects.get(pk=kwargs['policy_id'])
-                if not request.user.has_perm(rc):
-                    return JsonErrorResponse('Permission denied')
-            except:
-                return JsonErrorResponse('Exception occurred while getting a ReviewCycle object')
-
-        return super(PolicyAPI, self).dispatch(request, *args, **kwargs)
 
     @transaction.non_atomic_requests
     def get(self, request, policy_id=None, format=None):

@@ -34,15 +34,6 @@ class Person(AbstractBaseUser):
     def __str__(self):
         return self.email
 
-    def has_perm(self, review_cycle=None):
-        try:
-            if isinstance(review_cycle, ReviewCycle) and \
-                    self.pk is review_cycle.creator_id:
-                return True
-            return False
-        except:
-            return False
-
 
 class ReviewCycle(models.Model):
     creator = models.ForeignKey(Person, on_delete=models.CASCADE)
