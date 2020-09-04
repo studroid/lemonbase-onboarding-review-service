@@ -51,27 +51,11 @@ def sign_out(request):
         return Response(status=status.HTTP_200_OK)
 
 
-class PolicyAPI(mixins.CreateModelMixin,
-                mixins.RetrieveModelMixin,
-                mixins.UpdateModelMixin,
-                mixins.DestroyModelMixin,
-                generics.GenericAPIView):
+class PolicyAPI(generics.CreateAPIView,
+                generics.RetrieveUpdateDestroyAPIView):
     queryset = ReviewCycle.objects.all()
     serializer_class = ReviewCycleSerializer
     permission_classes = [permissions.IsAuthenticated, IsCreatorOrCreateOnly]
-
-    @transaction.non_atomic_requests
-    def get(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
-
-    def put(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
-
-    def delete(self, request, *args, **kwargs):
-        return self.destroy(request, *args, **kwargs)
 
     def perform_create(self, serializer):
         serializer.save(creator=self.request.user)
