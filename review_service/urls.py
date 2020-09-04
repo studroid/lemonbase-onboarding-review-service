@@ -9,5 +9,5 @@ urlpatterns = [
     path('account/sign_out/', views.sign_out, name='account_sign_out'),
 
     path('policy/', views.PolicyAPI.as_view(), name='policy'),
-    path('policy/<int:policy_id>', views.PolicyAPI.as_view(), name='policy_one_argument'),
+    path('policy/<int:pk>', views.PolicyAPI.as_view(), name='policy_one_argument'),
 ]

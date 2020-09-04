@@ -4,7 +4,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.db import transaction
 from django.http import JsonResponse, Http404
 from django.views import View
-from rest_framework import status, permissions
+from rest_framework import status, permissions, mixins, generics
 from rest_framework.decorators import api_view
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -51,39 +51,27 @@ def sign_out(request):
         return Response(status=status.HTTP_200_OK)
 
 
-class PolicyAPI(APIView):
+class PolicyAPI(mixins.CreateModelMixin,
+                mixins.RetrieveModelMixin,
+                mixins.UpdateModelMixin,
+                mixins.DestroyModelMixin,
+                generics.GenericAPIView):
+    queryset = ReviewCycle.objects.all()
+    serializer_class = ReviewCycleSerializer
     permission_classes = [permissions.IsAuthenticated, IsCreatorOrCreateOnly]
 
-    def get_object(self, pk):
-        try:
-            obj = ReviewCycle.objects.get(pk=pk)
-            self.check_object_permissions(self.request, obj)
-            return obj
-        except ReviewCycle.DoesNotExist:
-            raise Http404
-
     @transaction.non_atomic_requests
-    def get(self, request, policy_id=None, format=None):
-        rc = self.get_object(policy_id)
-        serializer = ReviewCycleSerializer(rc)
-        return Response(serializer.data)
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
 
-    def post(self, request, format=None):
-        serializer = ReviewCycleSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(creator=request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
 
-    def put(self, request, policy_id=None, format=None):
-        rc = self.get_object(policy_id)
-        serializer = ReviewCycleSerializer(rc, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
 
-    def delete(self, request, policy_id=None, format=None):
-        rc = self.get_object(policy_id)
-        rc.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
+
+    def perform_create(self, serializer):
+        serializer.save(creator=self.request.user)

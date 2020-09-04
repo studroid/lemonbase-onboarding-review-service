@@ -197,10 +197,9 @@ class ReviewServiceTest(TestCase):
         self.__setUpLoginState()
         self.__setUpTestReviewCycle()
 
-        response = self.__client_request(self.client.get,
+        with self.assertRaises(Exception) as cm:
+            response = self.__client_request(self.client.get,
                                          reverse('review_service:policy'))
-
-        self.assertEqual(response.status_code, 404)
 
     def test_read_policy_without_permission(self):
         self.__setUpLoginState(self.person2)
