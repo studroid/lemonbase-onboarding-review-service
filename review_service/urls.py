@@ -1,6 +1,10 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import SimpleRouter
 
 from . import views
+
+router = SimpleRouter()
+router.register(r'policy', views.PolicyAPI, basename='policy')
 
 app_name = 'review_service'
 urlpatterns = [
@@ -8,12 +12,5 @@ urlpatterns = [
     path('account/sign_in/', views.sign_in, name='account_sign_in'),
     path('account/sign_out/', views.sign_out, name='account_sign_out'),
 
-    path('policy/', views.PolicyAPI.as_view({
-        'post': 'create'
-    }), name='policy'),
-    path('policy/<int:pk>', views.PolicyAPI.as_view({
-        'get': 'retrieve',
-        'put': 'update',
-        'delete': 'destroy'
-    }), name='policy_one_argument'),
+    path('', include(router.urls)),
 ]

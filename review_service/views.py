@@ -52,9 +52,11 @@ def sign_out(request):
 
 
 class PolicyAPI(viewsets.ModelViewSet):
-    queryset = ReviewCycle.objects.all()
     serializer_class = ReviewCycleSerializer
     permission_classes = [permissions.IsAuthenticated, IsCreatorOrCreateOnly]
+
+    def get_queryset(self):
+        return self.request.user.reviewcycle_set.all()
 
     def perform_create(self, serializer):
         serializer.save(creator=self.request.user)
