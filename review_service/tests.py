@@ -199,7 +199,7 @@ class ReviewServiceTest(TestCase):
 
         with self.assertRaises(Exception) as cm:
             response = self.__client_request(self.client.get,
-                                         reverse('review_service:policy'))
+                                             reverse('review_service:policy_one_argument'))
 
     def test_read_policy_without_permission(self):
         self.__setUpLoginState(self.person2)

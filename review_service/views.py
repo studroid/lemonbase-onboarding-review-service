@@ -4,7 +4,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.db import transaction
 from django.http import JsonResponse, Http404
 from django.views import View
-from rest_framework import status, permissions, mixins, generics
+from rest_framework import status, permissions, mixins, generics, viewsets
 from rest_framework.decorators import api_view
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -51,8 +51,7 @@ def sign_out(request):
         return Response(status=status.HTTP_200_OK)
 
 
-class PolicyAPI(generics.CreateAPIView,
-                generics.RetrieveUpdateDestroyAPIView):
+class PolicyAPI(viewsets.ModelViewSet):
     queryset = ReviewCycle.objects.all()
     serializer_class = ReviewCycleSerializer
     permission_classes = [permissions.IsAuthenticated, IsCreatorOrCreateOnly]
