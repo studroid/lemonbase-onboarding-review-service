@@ -1,12 +1,13 @@
 import json
 
-from django.test import TestCase
 from django.urls import reverse
+from rest_framework import status
+from rest_framework.test import APITestCase
 
 from review_service.models import Person, ReviewCycle, Question
 
 
-class ReviewServiceTest(TestCase):
+class ReviewServiceTest(APITestCase):
     @classmethod
     def __create_person(cls, email, name, password):
         return Person.objects.create_user(email, name, password)
@@ -43,22 +44,20 @@ class ReviewServiceTest(TestCase):
 
     def __setUpLoginState(self, person=None):
         if person:
-            self.client.force_login(person)
+            self.client.force_authenticate(person)
         else:
-            self.client.force_login(self.person1)
+            self.client.force_authenticate(self.person1)
 
     def test_sign_up_with_get_method(self):
-        response = self.__client_request(self.client.get,
-                                         reverse('review_service:account_sign_up'))
-        self.assertEqual(response.status_code, 405)
+        response = self.client.get(reverse('review_service:account_sign_up'))
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_sign_up_with_success_case(self):
-        response = self.__client_request(self.client.post,
-                                         reverse('review_service:account_sign_up'),
-                                         {'email': 'test_new@test.com',
-                                          'name': 'test_new',
-                                          'password': '123456'})
-        self.assertEqual(response.status_code, 201)
+        response = self.client.post(reverse('review_service:account_sign_up'),
+                                    {'email': 'test_new@test.com',
+                                     'name': 'test_new',
+                                     'password': '123456'})
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Person.objects.get(email='test_new@test.com').name, 'test_new')
 
     def test_sign_up_with_failure_case(self):
