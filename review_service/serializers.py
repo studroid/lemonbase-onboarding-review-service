@@ -29,8 +29,8 @@ class ReviewCycleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ReviewCycle
-        fields = ['creator', 'name', 'reviewees', 'question', 'created_at']
-        read_only_fields = ['creator']
+        fields = ['id', 'creator', 'name', 'reviewees', 'question', 'created_at']
+        read_only_fields = ['id', 'creator']
 
     def create(self, validated_data):
         question_data = validated_data.pop('question')
