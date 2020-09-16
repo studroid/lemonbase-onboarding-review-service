@@ -138,6 +138,23 @@ class ReviewServiceTest(APITestCase):
         self.assertEqual(review.question.title, '이번 분기에서 나에게 가장 중요한 성과는 무엇이었나요?')
         self.assertEqual(review.reviewees.all()[0].email, 'test2@test.com')
 
+    def test_create_policy_with_duplicate_reviewees(self):
+        self.test_sign_in_with_success_case()
+
+        response = self.__client_request(self.client.post,
+                                         reverse('review_service:policy-list'),
+                                         {'name': '2020 2Q 정기 리뷰',
+                                          'reviewees': [2, 2],
+                                          'question':
+                                              {
+                                                  'title': '이번 분기에서 나에게 가장 중요한 성과는 무엇이었나요?',
+                                                  'description': '3개월 동안 수많은 문제들을 해결하시느라 고생 많으셨습니다! 그중에서도 가장 서비스에 임팩트가 컸다고 생각하는 일이 무엇이었는지 상세하게 적어주세요.'
+                                              },
+                                          })
+        self.assertEqual(response.status_code, 201)
+        review = ReviewCycle.objects.get(name__contains='2020')
+        self.assertEqual(review.reviewees.count(), 1)
+
     def test_create_policy_without_auth(self):
         response = self.__client_request(self.client.post,
                                          reverse('review_service:policy-list'),
