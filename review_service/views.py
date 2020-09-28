@@ -34,11 +34,11 @@ def sign_in(request):
             login(request, user)
         else:
             return Response(status=status.HTTP_403_FORBIDDEN)
-
+        serializer = PersonSerializer(user)
     except:
         return Response(status=status.HTTP_400_BAD_REQUEST)
     else:
-        return Response(status=status.HTTP_200_OK)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])

@@ -75,12 +75,11 @@ class ReviewServiceTest(APITestCase):
     def test_sign_in_with_success_case(self):
         # self.test_sign_up_with_success_case()
 
-        response = self.__client_request(self.client.post,
-                                         reverse('review_service:account_sign_in'),
-                                         {'email': 'test@test.com',
-                                          'password': '123456'})
+        response = self.client.post(reverse('review_service:account_sign_in'),
+                                    {'email': 'test@test.com', 'password': '123456'})
 
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['name'], 'test')
 
     def test_sign_in_with_wrong_password_case(self):
         response = self.__client_request(self.client.post,
